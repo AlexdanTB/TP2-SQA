@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket #{{ venta.numero_ticket }} - FastFood Express</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="receipt-box">
+    <div class="receipt-header">
+        <div class="receipt-logo">🍔 FastFood Express</div>
+        <div class="receipt-title">COMPROBANTE DE VENTA</div>
+        <div>RUC: 1792345678001</div>
+        <div>Av. Principal & Los Sauces, Quito</div>
+        <div>Tel: (02) 2345-678</div>
+    </div>
+
+    <div style="font-size: 0.75rem; margin-bottom: 8px;">
+        <div><strong>Ticket:</strong> #{{ venta.numero_ticket }}</div>
+        <div><strong>Fecha:</strong> {{ venta.creado_en|date:"d/m/Y H:i" }}</div>
+        <div><strong>Cliente:</strong> {{ venta.cliente_nombre }}</div>
+        <div><strong>C.I. / RUC:</strong> {{ venta.cliente_identificacion }}</div>
+        <div><strong>Pago:</strong> {{ venta.get_metodo_pago_display }}</div>
+        <div><strong>Estado:</strong> {{ venta.get_estado_display }}</div>
+    </div>
+
+    <table class="receipt-table">
+        <thead>
+            <tr>
+                <th>CANT / DESCRIPCIÓN</th>
+                <th style="text-align: right;">P.U.</th>
+                <th style="text-align: right;">TOTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in venta.detalles.all %}
+                <tr>
+                    <td>{{ d.cantidad }}x {{ d.producto.nombre }}</td>
+                    <td style="text-align: right;">${{ d.precio_unitario|floatformat:2 }}</td>
+                    <td style="text-align: right;">${{ d.subtotal|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="receipt-totals">
+        <div style="display: flex; justify-content: space-between;">
+            <span>Subtotal:</span>
+            <span>${{ venta.subtotal|floatformat:2 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>IVA (15%):</span>
+            <span>${{ venta.iva|floatformat:2 }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 0.95rem; margin-top: 4px;">
+            <span>TOTAL:</span>
+            <span>${{ venta.total|floatformat:2 }}</span>
+        </div>
+
+        {% if venta.metodo_pago == 'EFECTIVO' %}
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 4px;">
+                <span>Efectivo:</span>
+                <span>${{ venta.monto_recibido|floatformat:2 }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+                <span>Cambio:</span>
+                <span>${{ venta.cambio|floatformat:2 }}</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="receipt-footer">
+        <div>¡Gracias por tu preferencia!</div>
+        <div style="font-size: 0.68rem; margin-top: 4px;">Sistema FastFood POS • Arquitectura MVT</div>
+    </div>
+
+    <div class="no-print" style="margin-top: 18px; text-align: center;">
+        <button onclick="window.print()" class="btn btn-primary btn-sm" style="width: 100%;">🖨️ Imprimir Ticket</button>
+    </div>
+</div>
+
+</body>
+</html>

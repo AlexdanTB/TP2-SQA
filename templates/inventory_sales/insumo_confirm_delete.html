@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Insumo{% endblock %}
+{% block page_title %}🗑️ Confirmar Eliminación de Insumo{% endblock %}
+
+{% block content %}
+<div style="max-width: 550px; margin: 0 auto;">
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.3);">
+        <div class="card-header" style="background: rgba(239, 68, 68, 0.1);">
+            <strong style="color: var(--danger);">⚠️ Advertencia de Eliminación</strong>
+        </div>
+        <div class="card-body" style="text-align: center; padding: 32px 24px;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📦</div>
+            <h3 style="color: #fff; margin-bottom: 8px;">¿Eliminar el insumo "{{ object.nombre }}"?</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+                Código: <strong>{{ object.codigo }}</strong> | Stock: <strong>{{ object.stock_actual }} {{ object.get_unidad_medida_display }}</strong>.<br>
+                Esta acción borrará el insumo del registro.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <a href="{% url 'insumo_list' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, Eliminar Insumo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

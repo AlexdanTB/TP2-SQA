@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Anular Venta #{{ venta.numero_ticket }}{% endblock %}
+{% block page_title %}❌ Confirmar Anulación de Venta{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.4);">
+        <div class="card-header" style="background: rgba(239, 68, 68, 0.1);">
+            <strong style="color: var(--danger);">⚠️ Proceso de Anulación y Devolución</strong>
+        </div>
+        <div class="card-body">
+            <h3 style="color: #fff; margin-bottom: 12px;">¿Desea anular la venta #{{ venta.numero_ticket }}?</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                Monto total de la venta: <strong style="color: var(--primary); font-size: 1.1rem;">${{ venta.total|floatformat:2 }}</strong><br>
+                Cliente: <strong>{{ venta.cliente_nombre }}</strong>
+            </p>
+
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px;">
+                <strong style="color: #fff; font-size: 0.85rem; display: block; margin-bottom: 6px;">Impacto en el inventario:</strong>
+                <ul style="color: var(--text-muted); font-size: 0.82rem; padding-left: 20px; line-height: 1.6;">
+                    {% for item in venta.detalles.all %}
+                        <li>Se devolverán <strong>+{{ item.cantidad }} unidades</strong> de "{{ item.producto.nombre }}" al stock disponible.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="motivo">Motivo o Justificación de la Anulación *</label>
+                    <textarea name="motivo" id="motivo" class="form-control" rows="3" required placeholder="Ej. Error de cobro, devolución de cliente, cancelación de pedido..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <a href="{% url 'sale_detail' venta.pk %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger" style="flex: 1;">❌ Confirmar Anulación & Restituir Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

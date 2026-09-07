@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorías de Menú{% endblock %}
+{% block page_title %}📂 Gestión de Categorías{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <form method="get" style="display: flex; gap: 10px; max-width: 400px; width: 100%;">
+            <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar categoría...">
+            <button type="submit" class="btn btn-secondary btn-sm">Buscar</button>
+        </form>
+        <a href="{% url 'category_create' %}" class="btn btn-primary">
+            <span>➕</span> Nueva Categoría
+        </a>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Ícono</th>
+                        <th>Nombre de la Categoría</th>
+                        <th>Descripción</th>
+                        <th>Cant. Productos</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in categorias %}
+                        <tr>
+                            <td style="font-size: 1.5rem;">{{ c.icono }}</td>
+                            <td><strong>{{ c.nombre }}</strong></td>
+                            <td style="color: var(--text-muted);">{{ c.descripcion|default:"Sin descripción"|truncatechars:60 }}</td>
+                            <td>
+                                <span class="badge badge-primary">{{ c.productos.count }} platos</span>
+                            </td>
+                            <td>
+                                {% if c.activo %}
+                                    <span class="badge badge-success">Activa</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right;">
+                                <a href="{% url 'category_edit' c.pk %}" class="btn btn-secondary btn-sm">✏️ Editar</a>
+                                <a href="{% url 'category_delete' c.pk %}" class="btn btn-danger btn-sm">🗑️ Eliminar</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                                No se encontraron categorías registradas.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

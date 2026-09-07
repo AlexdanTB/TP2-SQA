@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Producto{% endblock %}
+{% block page_title %}🗑️ Confirmar Eliminación de Producto{% endblock %}
+
+{% block content %}
+<div style="max-width: 550px; margin: 0 auto;">
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.3);">
+        <div class="card-header" style="background: rgba(239, 68, 68, 0.1);">
+            <strong style="color: var(--danger);">⚠️ Advertencia de Eliminación</strong>
+        </div>
+        <div class="card-body" style="text-align: center; padding: 32px 24px;">
+            <div style="font-size: 3.5rem; margin-bottom: 12px;">{{ object.emoji }}</div>
+            <h3 style="color: #fff; margin-bottom: 8px;">¿Eliminar el producto "{{ object.nombre }}"?</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">
+                Precio: <strong>${{ object.precio }}</strong> | Stock actual: <strong>{{ object.stock_disponible }} unidades</strong>.<br>
+                <em>Nota SQA: Si este producto posee ventas históricas registradas, el sistema lo desactivará automáticamente para preservar la integridad de la facturación.</em>
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Sí, Confirmar Eliminación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

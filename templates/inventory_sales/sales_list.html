@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Historial de Ventas{% endblock %}
+{% block page_title %}🧾 Historial de Facturación & Ventas{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
+        <form method="get" style="display: flex; gap: 10px; flex: 1; min-width: 280px; flex-wrap: wrap;">
+            <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" style="flex: 1; min-width: 180px;" placeholder="Buscar por N° ticket, cliente o cédula...">
+            
+            <input type="date" name="fecha" value="{{ request.GET.fecha }}" class="form-control" style="width: auto;">
+
+            <select name="estado" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Todos los Estados</option>
+                <option value="COMPLETADA" {% if request.GET.estado == 'COMPLETADA' %}selected{% endif %}>✅ Completadas</option>
+                <option value="ANULADA" {% if request.GET.estado == 'ANULADA' %}selected{% endif %}>❌ Anuladas</option>
+            </select>
+
+            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            {% if request.GET.q or request.GET.fecha or request.GET.estado %}
+                <a href="{% url 'sales_list' %}" class="btn btn-secondary btn-sm">Limpiar</a>
+            {% endif %}
+        </form>
+
+        <a href="{% url 'pos' %}" class="btn btn-primary">
+            <span>⚡</span> Abrir POS
+        </a>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>N° Ticket</th>
+                        <th>Fecha & Hora</th>
+                        <th>Cliente</th>
+                        <th>Identificación</th>
+                        <th>Método</th>
+                        <th>Subtotal</th>
+                        <th>IVA (15%)</th>
+                        <th>Total Cobrado</th>
+                        <th>Estado</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in ventas %}
+                        <tr>
+                            <td><strong>#{{ v.numero_ticket }}</strong></td>
+                            <td style="color: var(--text-dim); font-size: 0.85rem;">{{ v.creado_en|date:"d/m/Y H:i" }}</td>
+                            <td>{{ v.cliente_nombre }}</td>
+                            <td style="font-family: monospace; font-size: 0.82rem; color: var(--text-dim);">{{ v.cliente_identificacion }}</td>
+                            <td><span class="badge badge-muted">{{ v.get_metodo_pago_display }}</span></td>
+                            <td>${{ v.subtotal|floatformat:2 }}</td>
+                            <td>${{ v.iva|floatformat:2 }}</td>
+                            <td style="font-weight: 800; color: var(--primary); font-size: 1rem;">${{ v.total|floatformat:2 }}</td>
+                            <td>
+                                {% if v.estado == 'COMPLETADA' %}
+                                    <span class="badge badge-success">Completada</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Anulada</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{% url 'sale_detail' v.pk %}" class="btn btn-secondary btn-sm" title="Ver Detalle">👁️ Detalle</a>
+                                <a href="{% url 'sale_receipt' v.pk %}" target="_blank" class="btn btn-secondary btn-sm" title="Ticket Imprimible">🖨️</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="10" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                                No se encontraron ventas registradas con los filtros seleccionados.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

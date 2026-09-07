@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Movimiento de Stock{% endblock %}
+{% block page_title %}🔄 Ajustar / Reabastecer Inventario{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 0 auto;">
+    <div class="card">
+        <div class="card-header">
+            <strong style="color: #fff;">Nuevo Movimiento de Inventario</strong>
+            <a href="{% url 'stock_movement_list' %}" class="btn btn-secondary btn-sm">← Volver al historial</a>
+        </div>
+        <div class="card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="id_item_tipo">{{ form.item_tipo.label }} *</label>
+                    {{ form.item_tipo }}
+                </div>
+
+                <div id="productoGroup" class="form-group">
+                    <label class="form-label" for="id_producto_select">{{ form.producto.label }} *</label>
+                    {{ form.producto }}
+                    {% if form.producto.errors %}
+                        <div class="form-errors">{{ form.producto.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div id="insumoGroup" class="form-group" style="display: none;">
+                    <label class="form-label" for="id_insumo_select">{{ form.insumo.label }} *</label>
+                    {{ form.insumo }}
+                    {% if form.insumo.errors %}
+                        <div class="form-errors">{{ form.insumo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }} *</label>
+                        {{ form.tipo }}
+                        {% if form.tipo.errors %}
+                            <div class="form-errors">{{ form.tipo.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.cantidad.id_for_label }}">{{ form.cantidad.label }} *</label>
+                        {{ form.cantidad }}
+                        {% if form.cantidad.errors %}
+                            <div class="form-errors">{{ form.cantidad.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.motivo.id_for_label }}">{{ form.motivo.label }} *</label>
+                    {{ form.motivo }}
+                    {% if form.motivo.errors %}
+                        <div class="form-errors">{{ form.motivo.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.responsable.id_for_label }}">{{ form.responsable.label }}</label>
+                    {{ form.responsable }}
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 28px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">💾 Aplicar Movimiento de Stock</button>
+                    <a href="{% url 'stock_movement_list' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const itemTipoSelect = document.getElementById('id_item_tipo');
+        const prodGroup = document.getElementById('productoGroup');
+        const insumoGroup = document.getElementById('insumoGroup');
+
+        function toggleInputs() {
+            if (itemTipoSelect.value === 'PRODUCTO') {
+                prodGroup.style.display = 'block';
+                insumoGroup.style.display = 'none';
+            } else {
+                prodGroup.style.display = 'none';
+                insumoGroup.style.display = 'block';
+            }
+        }
+
+        itemTipoSelect.addEventListener('change', toggleInputs);
+        toggleInputs();
+    });
+</script>
+{% endblock %}

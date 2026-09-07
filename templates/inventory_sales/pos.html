@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Punto de Venta (POS){% endblock %}
+{% block page_title %}⚡ Terminal Punto de Venta (POS){% endblock %}
+
+{% block content %}
+<div class="pos-layout">
+    <!-- PANEL IZQUIERDO: CATÁLOGO Y PRODUCTOS -->
+    <div class="pos-products-panel">
+        <!-- BUSCADOR RÁPIDO Y FILTROS -->
+        <div style="display: flex; gap: 12px;">
+            <input type="text" id="posSearchInput" class="form-control" placeholder="🔍 Buscar por nombre o código de producto..." autofocus>
+        </div>
+
+        <!-- TABS DE CATEGORÍAS -->
+        <div class="category-tabs">
+            <button type="button" class="category-tab-btn active" data-category="all">
+                🌟 Todas las Categorías
+            </button>
+            {% for cat in categorias %}
+                <button type="button" class="category-tab-btn" data-category="{{ cat.id }}">
+                    {{ cat.icono }} {{ cat.nombre }}
+                </button>
+            {% endfor %}
+        </div>
+
+        <!-- GRID DE PRODUCTOS -->
+        <div class="pos-grid">
+            {% for p in productos %}
+                <div class="pos-item-card {% if p.stock_disponible <= 0 %}out-of-stock{% endif %}" 
+                     data-category="{{ p.categoria.id }}"
+                     data-name="{{ p.nombre }}"
+                     data-code="{{ p.codigo }}"
+                     onclick="addToCart({{ p.id }}, '{{ p.nombre|escapejs }}', {{ p.precio }}, {{ p.stock_disponible }}, '{{ p.emoji }}')">
+                    
+                    <div class="pos-item-emoji">{{ p.emoji }}</div>
+                    <div class="pos-item-name">{{ p.nombre }}</div>
+                    <div class="pos-item-price">${{ p.precio|floatformat:2 }}</div>
+                    
+                    <div class="pos-item-stock">
+                        {% if p.stock_disponible > p.stock_minimo %}
+                            <span class="badge badge-success">{{ p.stock_disponible }} disp.</span>
+                        {% elif p.stock_disponible > 0 %}
+                            <span class="badge badge-warning">¡Solo {{ p.stock_disponible }}!</span>
+                        {% else %}
+                            <span class="badge badge-danger">Agotado</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-dim);">
+                    <p>No hay productos registrados en el menú.</p>
+                    <a href="{% url 'product_create' %}" class="btn btn-primary btn-sm" style="margin-top: 10px;">Crear Primer Producto</a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- PANEL DERECHO: CARRITO Y CHECKOUT -->
+    <div class="pos-cart-panel">
+        <div class="cart-header">
+            <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <span>🛒 Orden de Venta</span>
+                <span id="cartCountBadge" class="badge badge-primary">0</span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="clearCart()" title="Vaciar Carrito">
+                🗑️
+            </button>
+        </div>
+
+        <!-- LISTA DE ITEMS -->
+        <div id="cartItemsList" class="cart-items-list">
+            <!-- Renderizado dinámico vía JavaScript -->
+        </div>
+
+        <!-- DATOS DEL CLIENTE Y PAGO -->
+        <div style="padding: 12px 18px; background: rgba(255,255,255,0.02); border-top: 1px solid var(--border-color);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                    <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 600;">Cliente</label>
+                    <input type="text" id="customerNameInput" class="form-control" style="padding: 6px 10px; font-size: 0.8rem;" value="Consumidor Final">
+                </div>
+                <div>
+                    <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 600;">RUC / Cédula</label>
+                    <input type="text" id="customerIdInput" class="form-control" style="padding: 6px 10px; font-size: 0.8rem;" value="9999999999">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                    <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 600;">Método de Pago</label>
+                    <select id="paymentMethodSelect" class="form-select" style="padding: 6px 10px; font-size: 0.8rem;">
+                        <option value="EFECTIVO">💵 Efectivo</option>
+                        <option value="TARJETA">💳 Tarjeta</option>
+                        <option value="TRANSFERENCIA">📱 Transferencia</option>
+                    </select>
+                </div>
+                <div id="cashContainer">
+                    <label style="font-size: 0.72rem; color: var(--text-dim); font-weight: 600;">Efectivo Recibido ($)</label>
+                    <input type="number" id="cashReceivedInput" step="0.01" min="0" class="form-control" style="padding: 6px 10px; font-size: 0.8rem;" placeholder="0.00">
+                    <div style="display: flex; gap: 4px; margin-top: 4px;">
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickCash('exact')">Exacto</button>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickCash(5)">$5</button>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickCash(10)">$10</button>
+                        <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.7rem;" onclick="setQuickCash(20)">$20</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="changeContainer" style="margin-top: 6px; display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700;">
+                <span style="color: var(--text-muted);">Cambio a devolver:</span>
+                <span id="changeDisplay" style="color: var(--text-dim);">$0.00</span>
+            </div>
+        </div>
+
+        <!-- RESUMEN DE TOTALES -->
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Subtotal (Base Imponible)</span>
+                <span id="cartSubtotal">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>IVA (15%)</span>
+                <span id="cartIva">$0.00</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total a Pagar</span>
+                <span id="cartTotal">$0.00</span>
+            </div>
+
+            <button type="button" id="btnProcessCheckout" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;" disabled>
+                💳 Cobrar y Generar Ticket
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA TICKET / COMPROBANTE DE VENTA -->
+<div id="receiptModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); width: 440px; max-width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-md);">
+        <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <strong style="color: #fff; font-size: 1.05rem;">🧾 Comprobante de Venta</strong>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeReceiptModal()">✖ Cerrar</button>
+        </div>
+        <div style="flex: 1; padding: 16px; overflow-y: auto; background: #222;">
+            <iframe id="receiptIframe" style="width: 100%; height: 380px; border: none; background: #fff; border-radius: 4px;"></iframe>
+        </div>
+        <div style="padding: 14px 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeReceiptModal()">Nueva Venta</button>
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('receiptIframe').contentWindow.print()">🖨️ Imprimir Ticket</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pos.js' %}"></script>
+{% endblock %}

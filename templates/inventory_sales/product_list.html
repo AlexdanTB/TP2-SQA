@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Productos del Menú{% endblock %}
+{% block page_title %}🍔 Gestión de Productos del Menú{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
+        <form method="get" style="display: flex; gap: 10px; flex: 1; min-width: 280px; flex-wrap: wrap;">
+            <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" style="flex: 1; min-width: 160px;" placeholder="Buscar producto por nombre o código...">
+            
+            <select name="categoria" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Todas las Categorías</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if request.GET.categoria == cat.id|stringformat:"i" %}selected{% endif %}>
+                        {{ cat.icono }} {{ cat.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <select name="stock" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Todo el Stock</option>
+                <option value="bajo" {% if request.GET.stock == 'bajo' %}selected{% endif %}>⚠️ Stock Bajo</option>
+                <option value="agotado" {% if request.GET.stock == 'agotado' %}selected{% endif %}>❌ Agotados</option>
+            </select>
+
+            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            {% if request.GET.q or request.GET.categoria or request.GET.stock %}
+                <a href="{% url 'product_list' %}" class="btn btn-secondary btn-sm">Limpiar</a>
+            {% endif %}
+        </form>
+
+        <a href="{% url 'product_create' %}" class="btn btn-primary">
+            <span>➕</span> Nuevo Producto
+        </a>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Cód / Ícono</th>
+                        <th>Nombre del Producto</th>
+                        <th>Categoría</th>
+                        <th>Precio Venta</th>
+                        <th>Costo Est.</th>
+                        <th>Stock Disp.</th>
+                        <th>Estado Stock</th>
+                        <th>Disponible</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 1.6rem;">{{ p.emoji }}</span>
+                                    <span style="font-family: monospace; font-size: 0.8rem; color: var(--text-dim);">{{ p.codigo }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong>{{ p.nombre }}</strong>
+                                {% if p.descripcion %}
+                                    <div style="font-size: 0.75rem; color: var(--text-muted);">{{ p.descripcion|truncatechars:50 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge badge-muted">{{ p.categoria.icono }} {{ p.categoria.nombre }}</span>
+                            </td>
+                            <td style="font-weight: 700; color: var(--primary);">${{ p.precio|floatformat:2 }}</td>
+                            <td style="color: var(--text-muted);">${{ p.costo|floatformat:2 }}</td>
+                            <td>
+                                <span style="font-weight: 700;">{{ p.stock_disponible }}</span> / <span style="color: var(--text-dim); font-size: 0.8rem;">mín {{ p.stock_minimo }}</span>
+                            </td>
+                            <td>
+                                {% if p.stock_disponible == 0 %}
+                                    <span class="badge badge-danger">Agotado</span>
+                                {% elif p.stock_disponible <= p.stock_minimo %}
+                                    <span class="badge badge-warning">Bajo</span>
+                                {% else %}
+                                    <span class="badge badge-success">Óptimo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if p.activo %}
+                                    <span style="color: var(--success); font-size: 0.85rem;">● En menú</span>
+                                {% else %}
+                                    <span style="color: var(--text-dim); font-size: 0.85rem;">○ Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{% url 'product_edit' p.pk %}" class="btn btn-secondary btn-sm" title="Editar">✏️</a>
+                                <a href="{% url 'product_delete' p.pk %}" class="btn btn-danger btn-sm" title="Eliminar">🗑️</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                                No se encontraron productos registrados con los filtros aplicados.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

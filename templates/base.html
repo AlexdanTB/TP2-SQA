@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FastFood Express{% endblock %} - Gestión de Stock & Ventas</title>
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">🍔</div>
+                <div class="brand-title">
+                    <span>FastFood</span>
+                    <span class="brand-subtitle">POS & Inventory</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Principal</div>
+                <a href="{% url 'dashboard' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <span class="icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'pos' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'pos' %}active{% endif %}">
+                    <span class="icon">⚡</span>
+                    <span>Punto de Venta (POS)</span>
+                </a>
+
+                <div class="nav-section-title">Inventario & Stock</div>
+                <a href="{% url 'product_list' %}"
+                    class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">🍔</span>
+                    <span>Productos del Menú</span>
+                </a>
+                <a href="{% url 'category_list' %}"
+                    class="nav-link {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">📂</span>
+                    <span>Categorías</span>
+                </a>
+                <a href="{% url 'insumo_list' %}"
+                    class="nav-link {% if 'insumo' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">📦</span>
+                    <span>Insumos / Cocina</span>
+                </a>
+                <a href="{% url 'stock_movement_list' %}"
+                    class="nav-link {% if 'stock_movement' in request.resolver_match.url_name %}active{% endif %}">
+                    <span class="icon">🔄</span>
+                    <span>Movimientos de Stock</span>
+                </a>
+
+                <div class="nav-section-title">Ventas & Facturación</div>
+                <a href="{% url 'sales_list' %}"
+                    class="nav-link {% if 'sale' in request.resolver_match.url_name and request.resolver_match.url_name != 'pos' %}active{% endif %}">
+                    <span class="icon">🧾</span>
+                    <span>Historial de Ventas</span>
+                </a>
+
+                <div class="nav-section-title">Sistema</div>
+                <a href="/admin/" target="_blank" class="nav-link">
+                    <span class="icon">⚙️</span>
+                    <span>Panel Django Admin</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sqa-badge">
+                    <span>🛡️</span>
+                    <span>V 1.0.0</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="main-wrapper">
+            <!-- TOPBAR -->
+            <header class="topbar">
+                <div class="topbar-title">
+                    {% block page_title %}Panel Principal{% endblock %}
+                </div>
+                <div class="topbar-actions">
+                    <a href="{% url 'pos' %}" class="btn btn-primary btn-sm">
+                        <span>⚡</span> Abrir POS
+                    </a>
+                    <a href="{% url 'stock_movement_create' %}" class="btn btn-secondary btn-sm">
+                        <span>➕</span> Ajustar Stock
+                    </a>
+                </div>
+            </header>
+
+            <!-- TOAST CONTAINER FOR ALERTS -->
+            <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; max-width: 380px;">
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <div style="font-size: 1.2rem;">
+                        {% if message.tags == 'success' %}✅{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+                    </div>
+                    <div>{{ message }}</div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+            <!-- PAGE CONTENT -->
+            <main class="content-container">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- CSRF Helper -->
+    {% csrf_token %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

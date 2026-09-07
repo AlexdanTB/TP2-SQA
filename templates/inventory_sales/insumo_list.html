@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Insumos de Cocina e Inventario Base{% endblock %}
+{% block page_title %}📦 Insumos y Materias Primas{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="flex-wrap: wrap; gap: 14px;">
+        <form method="get" style="display: flex; gap: 10px; flex: 1; min-width: 280px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar insumo por nombre o código...">
+            
+            <select name="stock" class="form-select" style="width: auto;" onchange="this.form.submit()">
+                <option value="">Todo el Stock</option>
+                <option value="bajo" {% if request.GET.stock == 'bajo' %}selected{% endif %}>⚠️ Stock Bajo</option>
+                <option value="agotado" {% if request.GET.stock == 'agotado' %}selected{% endif %}>❌ Agotados</option>
+            </select>
+
+            <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+            {% if request.GET.q or request.GET.stock %}
+                <a href="{% url 'insumo_list' %}" class="btn btn-secondary btn-sm">Limpiar</a>
+            {% endif %}
+        </form>
+
+        <a href="{% url 'insumo_create' %}" class="btn btn-primary">
+            <span>➕</span> Nuevo Insumo
+        </a>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Insumo / Materia Prima</th>
+                        <th>Unidad</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Costo Unit.</th>
+                        <th>Estado</th>
+                        <th>Activo</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in insumos %}
+                        <tr>
+                            <td><span style="font-family: monospace; color: var(--text-dim);">{{ i.codigo }}</span></td>
+                            <td><strong>{{ i.nombre }}</strong></td>
+                            <td><span class="badge badge-muted">{{ i.get_unidad_medida_display }}</span></td>
+                            <td>
+                                <strong style="color: {% if i.stock_actual == 0 %}var(--danger){% elif i.stock_actual <= i.stock_minimo %}var(--warning){% else %}var(--success){% endif %};">
+                                    {{ i.stock_actual }}
+                                </strong>
+                            </td>
+                            <td style="color: var(--text-muted);">{{ i.stock_minimo }}</td>
+                            <td>${{ i.costo_unitario|floatformat:2 }}</td>
+                            <td>
+                                {% if i.stock_actual == 0 %}
+                                    <span class="badge badge-danger">Agotado</span>
+                                {% elif i.stock_actual <= i.stock_minimo %}
+                                    <span class="badge badge-warning">Bajo</span>
+                                {% else %}
+                                    <span class="badge badge-success">Óptimo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if i.activo %}
+                                    <span style="color: var(--success); font-size: 0.85rem;">● Activo</span>
+                                {% else %}
+                                    <span style="color: var(--text-dim); font-size: 0.85rem;">○ Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td style="text-align: right; white-space: nowrap;">
+                                <a href="{% url 'insumo_edit' i.pk %}" class="btn btn-secondary btn-sm" title="Editar">✏️</a>
+                                <a href="{% url 'insumo_delete' i.pk %}" class="btn btn-danger btn-sm" title="Eliminar">🗑️</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 36px; color: var(--text-dim);">
+                                No se encontraron insumos registrados.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
